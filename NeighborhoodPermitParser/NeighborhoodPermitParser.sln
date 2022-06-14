@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31919.166
+MinimumVisualStudioVersion = 17.0.31919.166
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeighborhoodPermitParser", "NeighborhoodPermitParser.csproj", "{F11DC872-D8CE-473E-AAA3-6D4C164560BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeighborhoodPermitParserCLI", "..\NeighborhoodPermitParserCLI\NeighborhoodPermitParserCLI.csproj", "{4B8BDA77-E65A-4D55-B884-07DC2468639A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F11DC872-D8CE-473E-AAA3-6D4C164560BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F11DC872-D8CE-473E-AAA3-6D4C164560BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F11DC872-D8CE-473E-AAA3-6D4C164560BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F11DC872-D8CE-473E-AAA3-6D4C164560BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B8BDA77-E65A-4D55-B884-07DC2468639A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B8BDA77-E65A-4D55-B884-07DC2468639A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B8BDA77-E65A-4D55-B884-07DC2468639A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B8BDA77-E65A-4D55-B884-07DC2468639A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8631D9FB-F0FC-4DDF-AB6E-F5F65078D017}
+	EndGlobalSection
+EndGlobal
