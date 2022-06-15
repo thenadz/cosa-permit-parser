@@ -7,16 +7,26 @@ namespace NeighborhoodPermitParser
 {
     public class NeighborhoodListingManager
     {
-        private const string NEIGHBORHOOD_LISTINGS_PATH = @"C:\Users\drossiter\Downloads\Neighborhood Assoc Listing.xlsx";
+        /// <summary>
+        /// Download source: https://www.sanantonio.gov/comm/Neighborhood-Engagement/Associations-Organizations
+        /// </summary>
+        private static readonly string NEIGHBORHOOD_LISTINGS_PATH = Path.Combine(Utilities.AssemblyDirectory, "Neighborhood Assoc Listing.xlsx");
 
         public NeighborhoodListingManager()
         {
             NeighborhoodListing = DownloadNeighborhoodListing();
         }
 
+        /// <summary>
+        /// Get all entries in official neighborhood listing
+        /// </summary>
         public IReadOnlyCollection<NeighborhoodListing> NeighborhoodListing { get; private set; }
 
-        private HashSet<NeighborhoodListing> DownloadNeighborhoodListing()
+        /// <summary>
+        /// Parse neighborhood listing Excel document
+        /// </summary>
+        /// <returns>Set of all neighborhood listings</returns>
+        private static HashSet<NeighborhoodListing> DownloadNeighborhoodListing()
         {
             HashSet<NeighborhoodListing> ret = new HashSet<NeighborhoodListing>();
             using (FileStream fs = File.OpenRead(NEIGHBORHOOD_LISTINGS_PATH))

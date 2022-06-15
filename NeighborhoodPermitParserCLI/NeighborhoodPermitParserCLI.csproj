@@ -21,7 +21,7 @@
     <None Update="email-template.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="location-cache.txt">
+    <None Update="Neighborhood Assoc Listing.xlsx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

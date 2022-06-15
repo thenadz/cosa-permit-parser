@@ -52,23 +52,23 @@ namespace NeighborhoodPermitParser
 
             coordinateTransform = new CoordinateTransformationFactory().CreateFromCoordinateSystems(sourceCoordSystem, targetCoordSystem);
 
-            //if (File.Exists(LOCATION_CACHE))
-            //{
-            //    int count = 0;
-            //    foreach (string entry in File.ReadAllLines(LOCATION_CACHE))
-            //    {
-            //        count++;
-            //        string[] parts = entry.Split();
-            //        if (parts.Length == 3)
-            //        {
-            //            locationCache[parts[0]] = new Coordinate(double.Parse(parts[1]), double.Parse(parts[2]));
-            //        }
-            //        else
-            //        {
-            //            locationCache[parts[0]] = null;
-            //        }
-            //    }
-            //}
+            if (File.Exists(LOCATION_CACHE))
+            {
+                int count = 0;
+                foreach (string entry in File.ReadAllLines(LOCATION_CACHE))
+                {
+                    count++;
+                    string[] parts = entry.Split();
+                    if (parts.Length == 3)
+                    {
+                        locationCache[parts[0]] = new Coordinate(double.Parse(parts[1]), double.Parse(parts[2]));
+                    }
+                    else
+                    {
+                        locationCache[parts[0]] = null;
+                    }
+                }
+            }
         }
 
         public NeighborhoodGisManager()
@@ -81,6 +81,7 @@ namespace NeighborhoodPermitParser
             ShapeDataReader reader = new ShapeDataReader(NEIGHBORHOODS_SHP_PATH);
             Envelope mbr = reader.ShapefileBounds;
 
+            // Loop through each neighborhood in the shapefile and store for future reference
             foreach (IShapefileFeature n in reader.ReadByMBRFilter(mbr))
             {
                 string name = n.Attributes["Name"] as string;
@@ -92,8 +93,14 @@ namespace NeighborhoodPermitParser
             }
         }
 
+        /// <summary>
+        /// Dictionary of each neighborhood's geometry, keyed off of the neighborhood's sanitized name
+        /// </summary>
         public Dictionary<string, IShapefileFeature> NeighborhoodList { get; } = new Dictionary<string, IShapefileFeature>();
 
+        /// <summary>
+        /// Dynamically retrieve from City's GIS website the current neighborhood shapefile
+        /// </summary>
         private static void DownloadShapefile()
         {
             if (!Directory.Exists(NEIGHBORHOODS_GIS_ROOT))
@@ -117,6 +124,12 @@ namespace NeighborhoodPermitParser
             }
         }
 
+        /// <summary>
+        /// Returns whether provided coordinate exists within the provided neighborhood's boundaries
+        /// </summary>
+        /// <param name="neighborhood">The neighborhood to be checked</param>
+        /// <param name="coordinate">The coordinate to be checked</param>
+        /// <returns>Whether or not the coordinate lies within the neighborhood's boundaries</returns>
         public static bool IsCoordinateInNeighborhood(IShapefileFeature neighborhood, Coordinate coordinate)
         {
             bool ret = false;
@@ -131,9 +144,17 @@ namespace NeighborhoodPermitParser
             return ret;
         }
 
+        /// <summary>
+        /// Locators are needed to enable hit testing coordinate against neighborhood's geometry
+        /// </summary>
         private static readonly ConcurrentDictionary<IShapefileFeature, IPointOnGeometryLocator> neighborhoodToLocator =
             new ConcurrentDictionary<IShapefileFeature, IPointOnGeometryLocator>();
 
+        /// <summary>
+        /// Retrieves the locator for a given neighborhood, creating one if not already created
+        /// </summary>
+        /// <param name="neighborhood"></param>
+        /// <returns></returns>
         private static IPointOnGeometryLocator GetNeighborhoodLocator(IShapefileFeature neighborhood) =>
             neighborhoodToLocator.GetOrAdd(neighborhood, n => new IndexedPointInAreaLocator(n.Geometry));
 

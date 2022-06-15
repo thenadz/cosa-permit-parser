@@ -29,6 +29,7 @@ namespace NeighborhoodPermitParserCLI
                 LeaveOpen = true
             };
 
+            // Parse credentials file - not elegant, but good enough for what we need
             Dictionary<string, string> creds = File.ReadAllLines(CREDENTIALS).Select(l => l.Split('=', StringSplitOptions.TrimEntries)).ToDictionary(l => l[0], l => l[1]);
 
             using SmtpClient smtp = new SmtpClient();
@@ -38,17 +39,20 @@ namespace NeighborhoodPermitParserCLI
             foreach ((NeighborhoodListing neighborhood, HashSet<PermitEntry> permits) in runner.NeighborhoodsWithPermits)
             {
                 MimeMessage email = new MimeMessage();
-                email.From.Add(MailboxAddress.Parse("dan.rossiters@gmail.com"));
-                email.To.Add(MailboxAddress.Parse("dan.rossiters@gmail.com"));//neighborhood.MailingAddress));
+                email.From.Add(MailboxAddress.Parse(creds["username"]));
+                email.To.Add(MailboxAddress.Parse(neighborhood.Email));
                 email.Subject = $"{neighborhood.Name} Permit Report - {DateTime.Now:d}";
 
                 BodyBuilder builder = new BodyBuilder();
+
+                // Build personalized HTML message for neighborhood
                 builder.HtmlBody = htmlTemplate
                     .Replace("###PREHEADER", $"{neighborhood.Name} Permit Report")
                     .Replace("###NAME", neighborhood.PocFirstName)
                     .Replace("###NEIGHBORHOOD", neighborhood.Name)
                     .Replace("###COUNT", permits.Count.ToString());
 
+                // Build CSV of neighborhood permits in memory to be sent as attachment
                 byte[] csvBytes;
                 using (MemoryStream ms = new MemoryStream())
                 using (TextWriter tw = new StreamWriter(ms))

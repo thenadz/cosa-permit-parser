@@ -9,6 +9,9 @@ namespace NeighborhoodPermitParser
     {
         private static string assemblyDirectory;
 
+        /// <summary>
+        /// Get filesystem path relative to the executing assembly to streamline pulling files off the filesystem
+        /// </summary>
         public static string AssemblyDirectory
         {
             get
@@ -25,6 +28,12 @@ namespace NeighborhoodPermitParser
             }
         }
 
+        /// <summary>
+        /// In order to normalize neighborhood names between the neighborhood registry and the GIS neighborhood entries,
+        /// we have to use extensive heuristics to get to common spelling from which we're able to match between the datasets.
+        /// </summary>
+        /// <param name="dirtyName">The un-sanitized neighborhood name.</param>
+        /// <returns>The sanitized name.</returns>
         public static string SanitizeNeighborhoodName(string dirtyName)
         {
             string name = dirtyName.Trim();

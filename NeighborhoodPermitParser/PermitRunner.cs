@@ -55,30 +55,41 @@ namespace NeighborhoodPermitParser
 
         private readonly Dictionary<NeighborhoodListing, IShapefileFeature[]> neighborhoodMapping = new Dictionary<NeighborhoodListing, IShapefileFeature[]>();
 
+        /// <summary>
+        /// Maps a given neighborhood listing to all permits for that neighborhood.
+        /// </summary>
         public Dictionary<NeighborhoodListing, HashSet<PermitEntry>> NeighborhoodsWithPermits { get; } = new Dictionary<NeighborhoodListing, HashSet<PermitEntry>>();
 
         public PermitRunner()
         {
             List<NeighborhoodListing> neighborhoodNameMisses = new List<NeighborhoodListing>();
 
+            // Loop through all neighborhoods with email - don't bother if we have no POC we're able to email
             foreach (NeighborhoodListing l in listingMgr.NeighborhoodListing.Where(l => l.Email != null))
             {
                 string match = gisMgr.NeighborhoodList.Keys.Where(k => string.Equals(k, l.Name, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
                 string manualMap = manualMappingOverride.ContainsKey(l.Name) ? manualMappingOverride[l.Name] : null;
                 List<string> matches = gisMgr.NeighborhoodList.Keys.Where(k => k.Contains(l.Name, StringComparison.InvariantCultureIgnoreCase)).ToList();
 
+                // We got a single good match using generalized matching
                 if (match != null)
                 {
                     neighborhoodMapping[l] = new[] { gisMgr.NeighborhoodList[match] };
                 }
+
+                // We encountered a known special case and made the manual mapping
                 else if (manualMap != null)
                 {
                     neighborhoodMapping[l] = new[] { gisMgr.NeighborhoodList[manualMap] };
                 }
+
+                // We found multiple matches - in some multi-phase neighborhoods this is actually correct
                 else if (matches.Any())
                 {
                     neighborhoodMapping[l] = matches.Select(m => gisMgr.NeighborhoodList[m]).ToArray();
                 }
+
+                // We got nothing
                 else
                 {
                     neighborhoodNameMisses.Add(l);
@@ -87,6 +98,7 @@ namespace NeighborhoodPermitParser
 
             DateTime start = DateTime.UtcNow;
 
+            // Retrieve current city-wide permit application report
             string csvStr;
             using (WebClient wc = new WebClient())
             {
@@ -97,6 +109,7 @@ namespace NeighborhoodPermitParser
 
             int permitCount = 0;
 
+            // Read the permit application report
             using (StringReader r = new StringReader(csvStr))
             using (CsvReader csvReader = new CsvReader(r, CultureInfo.InvariantCulture))
             {
@@ -104,11 +117,15 @@ namespace NeighborhoodPermitParser
                 foreach (PermitEntry record in records)
                 {
                     permitCount++;
+
+                    // If we can't place the permit on a map, nothing we can do with it
                     if (!record.X_COORD.HasValue || !record.Y_COORD.HasValue)
                     {
                         continue;
                     }
 
+                    // Hit test permit coordinate against all neighborhoods - identify all that match
+                    // Note that some neighborhood boundaries overlap, so multiple neighborhood matches IS valid, though uncommon
                     bool neighborhoodHit = false;
                     Coordinate recordCoord = new Coordinate(record.X_COORD.Value, record.Y_COORD.Value);
                     foreach ((NeighborhoodListing listing, IShapefileFeature[] geometries) in neighborhoodMapping)
