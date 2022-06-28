@@ -1,5 +1,6 @@
 ﻿using NanoXLSX;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 
@@ -36,6 +37,7 @@ namespace NeighborhoodPermitParser
                 int first = 1;
                 int last = wb.CurrentWorksheet.GetLastDataRowNumber();
 
+                EmailAddressAttribute emailAttr = new EmailAddressAttribute();
                 for (int r = first; r <= last; r++)
                 {
                     NeighborhoodListing l = new NeighborhoodListing();
@@ -63,7 +65,7 @@ namespace NeighborhoodPermitParser
                     }
 
                     l.Email = wb.CurrentWorksheet.GetCell(new Address(10, r)).Value.ToString();
-                    if (!l.Email.Contains('@'))
+                    if (!emailAttr.IsValid(l.Email))
                     {
                         l.Email = null;
                     }
