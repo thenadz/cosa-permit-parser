@@ -17,6 +17,7 @@ namespace NeighborhoodPermitParserCLI
     {
         private static readonly string CREDENTIALS = Path.Combine(Utilities.AssemblyDirectory, ".credentials");
         private static readonly string EMAIL_TEMPLATE = Path.Combine(Utilities.AssemblyDirectory, "email-template.html");
+        private static readonly string BAD_EMAIL_ADDRESSES = Path.Combine(Utilities.AssemblyDirectory, "bad-email-addresses.txt");
 
         static void Main(string[] args)
         {
@@ -31,6 +32,7 @@ namespace NeighborhoodPermitParserCLI
 
             // Parse credentials file - not elegant, but good enough for what we need
             Dictionary<string, string> creds = File.ReadAllLines(CREDENTIALS).Select(l => l.Split('=', StringSplitOptions.TrimEntries)).ToDictionary(l => l[0], l => l[1]);
+            HashSet<string> badEmailAddresses = new HashSet<string>(File.ReadAllLines(BAD_EMAIL_ADDRESSES));
 
             using SmtpClient smtp = new SmtpClient();
             smtp.Connect("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
@@ -38,6 +40,12 @@ namespace NeighborhoodPermitParserCLI
 
             foreach ((NeighborhoodListing neighborhood, HashSet<PermitEntry> permits) in runner.NeighborhoodsWithPermits)
             {
+                if (badEmailAddresses.Contains(neighborhood.Email))
+                {
+                    Console.WriteLine($"Skipping {neighborhood.Name} due to bad email address {neighborhood.Email}");
+                    continue;
+                }
+
                 MimeMessage email = new MimeMessage();
                 email.From.Add(MailboxAddress.Parse(creds["username"]));
                 email.To.Add(MailboxAddress.Parse(neighborhood.Email));
