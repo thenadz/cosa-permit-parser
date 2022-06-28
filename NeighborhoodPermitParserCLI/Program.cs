@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using CsvHelper;
 using CsvHelper.Configuration;
 using MailKit.Net.Smtp;
@@ -34,9 +35,8 @@ namespace NeighborhoodPermitParserCLI
             Dictionary<string, string> creds = File.ReadAllLines(CREDENTIALS).Select(l => l.Split('=', StringSplitOptions.TrimEntries)).ToDictionary(l => l[0], l => l[1]);
             HashSet<string> badEmailAddresses = new HashSet<string>(File.ReadAllLines(BAD_EMAIL_ADDRESSES));
 
-            using SmtpClient smtp = new SmtpClient();
-            smtp.Connect("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
-            smtp.Authenticate(creds["username"], creds["password"]);
+            SmtpClient smtp = null;
+            int count = 0;
 
             foreach ((NeighborhoodListing neighborhood, HashSet<PermitEntry> permits) in runner.NeighborhoodsWithPermits)
             {
@@ -45,6 +45,23 @@ namespace NeighborhoodPermitParserCLI
                     Console.WriteLine($"Skipping {neighborhood.Name} due to bad email address {neighborhood.Email}");
                     continue;
                 }
+
+                if (count == 90)
+                {
+                    smtp.Dispose();
+                    Console.WriteLine($"Pausing for an hour to avoid hitting Gmail rate limit.");
+                    Thread.Sleep(TimeSpan.FromMinutes(60));
+                    count = 0;
+                }
+
+                if (count == 0)
+                {
+                    smtp = new SmtpClient();
+                    smtp.Connect("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
+                    smtp.Authenticate(creds["username"], creds["password"]);
+                }
+
+                Console.WriteLine($"Emailing {neighborhood.Name}...");
 
                 MimeMessage email = new MimeMessage();
                 email.From.Add(MailboxAddress.Parse(creds["username"]));
@@ -76,6 +93,8 @@ namespace NeighborhoodPermitParserCLI
                 builder.Attachments.Add($"{neighborhood.Name} Permit Report.csv", csvBytes);
                 email.Body = builder.ToMessageBody();
                 smtp.Send(email);
+
+                count++;
             }
 
             smtp.Disconnect(true);
