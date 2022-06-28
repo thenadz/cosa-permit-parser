@@ -21,6 +21,8 @@ namespace NeighborhoodPermitParser
 
         public int? District { get; set; }
 
+        public double? Area { get; set; }
+
         public override bool Equals(object obj)
         {
             return obj is NeighborhoodListing other && other.Name == Name;

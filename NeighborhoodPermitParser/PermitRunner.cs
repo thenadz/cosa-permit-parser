@@ -96,6 +96,12 @@ namespace NeighborhoodPermitParser
                 }
             }
 
+            // Calculate total neighborhood area
+            foreach ((NeighborhoodListing listing, IShapefileFeature[] features) in neighborhoodMapping)
+            {
+                listing.Area = features.Sum(f => f.Geometry.Area);
+            }
+
             DateTime start = DateTime.UtcNow;
 
             // Retrieve current city-wide permit application report
