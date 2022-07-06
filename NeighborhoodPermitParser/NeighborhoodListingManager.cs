@@ -1,4 +1,5 @@
 ﻿using NanoXLSX;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
@@ -42,38 +43,51 @@ namespace NeighborhoodPermitParser
                 {
                     NeighborhoodListing l = new NeighborhoodListing();
 
-                    string type = wb.CurrentWorksheet.GetCell(new Address(1, r)).Value.ToString();
-                    l.Type = string.Equals(type, "neighborhood", System.StringComparison.InvariantCultureIgnoreCase) ? NeighborhoodType.Neighborhood : NeighborhoodType.HOA;
-                    l.Name = wb.CurrentWorksheet.GetCell(new Address(2, r)).Value.ToString();
-                    l.Name = Utilities.SanitizeNeighborhoodName(l.Name);
-
-                    l.PocFirstName = wb.CurrentWorksheet.GetCell(new Address(3, r)).Value.ToString();
-                    l.PocLastName = wb.CurrentWorksheet.GetCell(new Address(4, r)).Value.ToString();
-                    l.MailingAddress = wb.CurrentWorksheet.GetCell(new Address(5, r)).Value + ", " +
-                                       wb.CurrentWorksheet.GetCell(new Address(6, r)).Value + ", " +
-                                       wb.CurrentWorksheet.GetCell(new Address(7, r)).Value + " " +
-                                       wb.CurrentWorksheet.GetCell(new Address(8, r)).Value;
-
-                    l.Phone = string.Concat(wb.CurrentWorksheet.GetCell(new Address(9, r)).Value.ToString().Where(char.IsNumber));
-                    if (l.Phone.Length == 7)
+                    try
                     {
-                        l.Phone = "210" + l.Phone;
+                        string type = wb.CurrentWorksheet.GetCell(new Address(1, r)).Value.ToString();
+                        l.Type = string.Equals(type, "neighborhood", StringComparison.InvariantCultureIgnoreCase) ? NeighborhoodType.Neighborhood : NeighborhoodType.HOA;
+                        l.Name = wb.CurrentWorksheet.GetCell(new Address(2, r)).Value.ToString();
+                        if (string.IsNullOrWhiteSpace(l.Name))
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(l.Name));
+                        }
+
+                        l.Name = Utilities.SanitizeNeighborhoodName(l.Name);
+
+                        l.PocFirstName = wb.CurrentWorksheet.GetCell(new Address(3, r)).Value.ToString();
+                        l.PocLastName = wb.CurrentWorksheet.GetCell(new Address(4, r)).Value.ToString();
+                        l.MailingAddress = wb.CurrentWorksheet.GetCell(new Address(5, r)).Value + ", " +
+                                           wb.CurrentWorksheet.GetCell(new Address(6, r)).Value + ", " +
+                                           wb.CurrentWorksheet.GetCell(new Address(7, r)).Value + " " +
+                                           wb.CurrentWorksheet.GetCell(new Address(8, r)).Value;
+
+                        l.Phone = string.Concat(wb.CurrentWorksheet.GetCell(new Address(9, r)).Value.ToString().Where(char.IsNumber));
+                        if (l.Phone.Length == 7)
+                        {
+                            l.Phone = "210" + l.Phone;
+                        }
+                        else if (l.Phone.Length == 0)
+                        {
+                            l.Phone = null;
+                        }
+
+                        l.Email = wb.CurrentWorksheet.GetCell(new Address(10, r)).Value.ToString();
+                        if (!emailAttr.IsValid(l.Email))
+                        {
+                            l.Email = null;
+                        }
+
+                        string district = wb.CurrentWorksheet.GetCell(new Address(11, r)).Value.ToString();
+                        if (int.TryParse(district, out int parsed) && parsed > 0 && parsed < 11)
+                        {
+                            l.District = parsed;
+                        }
                     }
-                    else if (l.Phone.Length == 0)
+                    catch (Exception e)
                     {
-                        l.Phone = null;
-                    }
-
-                    l.Email = wb.CurrentWorksheet.GetCell(new Address(10, r)).Value.ToString();
-                    if (!emailAttr.IsValid(l.Email))
-                    {
-                        l.Email = null;
-                    }
-
-                    string district = wb.CurrentWorksheet.GetCell(new Address(11, r)).Value.ToString();
-                    if (int.TryParse(district, out int parsed) && parsed > 0 && parsed < 11)
-                    {
-                        l.District = parsed;
+                        Console.WriteLine($"Failed to parse row {r}: " + e);
+                        continue;
                     }
 
                     ret.Add(l);
