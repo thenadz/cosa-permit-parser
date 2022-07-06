@@ -95,6 +95,9 @@ namespace NeighborhoodPermitParserCLI
                 smtp.Send(email);
 
                 count++;
+
+                // Slow down sending to reduce change we hit Gmail's rate limit
+                Thread.Sleep(1000);
             }
 
             smtp.Disconnect(true);
