@@ -40,7 +40,7 @@ namespace NeighborhoodPermitParserCLI
 
             foreach ((NeighborhoodListing neighborhood, HashSet<PermitEntry> permits) in runner.NeighborhoodsWithPermits)
             {
-                if (badEmailAddresses.Contains(neighborhood.Email))
+                if (badEmailAddresses.Contains(neighborhood.Email, StringComparer.InvariantCultureIgnoreCase))
                 {
                     Console.WriteLine($"Skipping {neighborhood.Name} due to bad email address {neighborhood.Email}");
                     continue;
