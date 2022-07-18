@@ -72,7 +72,7 @@ namespace NeighborhoodPermitParser
                             l.Phone = null;
                         }
 
-                        l.Email = wb.CurrentWorksheet.GetCell(new Address(10, r)).Value.ToString();
+                        l.Email = wb.CurrentWorksheet.GetCell(new Address(10, r)).Value.ToString().Trim();
                         if (!emailAttr.IsValid(l.Email))
                         {
                             l.Email = null;
